@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'lotto',
 ]
 
 MIDDLEWARE = [
@@ -115,3 +116,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+LOGIN_REDIRECT_URL = '/'  # 로그인 성공하면 메인('/')으로 가라!
+LOGOUT_REDIRECT_URL = '/' # 로그아웃 성공해도 메인('/')으로 가라!

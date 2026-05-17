@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6/45 오소기 로또 웹사이트</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .lotto-ball {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 5px;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .bg-ball-1 { background-color: #fbc02d; } /* 1-10 노랑 */
+        .bg-ball-2 { background-color: #1e88e5; } /* 11-20 파랑 */
+        .bg-ball-3 { background-color: #e53935; } /* 21-30 빨강 */
+        .bg-ball-4 { background-color: #757575; } /* 31-40 회색 */
+        .bg-ball-5 { background-color: #43a047; } /* 41-45 녹색 */
+    </style>
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">🎰 6/45 로또 시스템</a>
+            <span class="navbar-text text-white">
+                {% if user.is_authenticated %}
+                    <strong>{{ user.username }}</strong>님 환영합니다! 
+                    {% if user.is_staff %}<span class="badge bg-danger">관리자</span>{% endif %}
+                    <form action="{% url 'admin:logout' %}?next=/" method="post" style="display: inline;">{% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-light ms-2">로그아웃</button>
+                    </form>
+                {% else %}
+                    <form action="{% url 'admin:logout' %}?next=/" method="post" style="display: inline;">{% csrf_token %}
+                        <button type="submit" class="btn btn-outline-light btn-sm">로그아웃</button>
+                    </form>
+                {% endif %}
+            </span>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card border-primary mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0"> 현재 진행 중인 회차</h5>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="text-center my-2">제 {{ current_round_number }} 회</h3>
+                        <p class="text-muted text-center small">이 회차의 복권을 구매할 수 있습니다.</p>
+
+                        {% if user.is_staff %}
+                            <div class="border-top pt-3 mt-3 text-center">
+                                <span class="badge bg-secondary mb-2">관리자 전용 기능</span>
+                                <form action="{% url 'lotto:admin_draw' %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger w-100 fw-bold"> 현재 회차 추첨하기</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0"> 복권 구매하기</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if user.is_authenticated %}
+                            <form action="{% url 'lotto:buy_ticket' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="round_id" value="{{ current_round_number }}">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">구매 방식 선택</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="mode" id="mode_auto" value="auto" checked onclick="toggleManual(false)">
+                                        <label class="form-check-input-label" for="mode_auto">자동 번호 (랜덤 6개)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="mode" id="mode_manual" value="manual" onclick="toggleManual(true)">
+                                        <label class="form-check-input-label" for="mode_manual">수동 번호 (직접 6개 클릭)</label>
+                                    </div>
+                                </div>
+
+                                <div id="manual_panel" class="mb-3 d-none border p-3 bg-light rounded">
+                                    <label class="form-label d-block fw-bold small text-secondary">1부터 45까지 번호 6개를 선택하세요</label>
+                                    <div class="row row-cols-7 g-1">
+                                        <div class="d-flex flex-wrap gap-1 justify-content-center">
+                                            {% for i in "123456789"|make_list %}
+                                                {% with forloop.counter as num %}
+                                                <input type="checkbox" class="btn-check" name="manual_numbers" id="btn_{{num}}" value="{{num}}" autocomplete="off">
+                                                <label class="btn btn-outline-secondary btn-sm" style="width:38px;" for="btn_{{num}}">{{num}}</label>
+                                                {% endwith %}
+                                            {% endfor %}
+                                            {% for i in "012345678901234567890123456789012345"|make_list %}
+                                                <input type="checkbox" class="btn-check" name="manual_numbers" id="btn_{{ forloop.counter|add:9 }}" value="{{ forloop.counter|add:9 }}" autocomplete="off">
+                                                <label class="btn btn-outline-secondary btn-sm" style="width:38px;" for="btn_{{ forloop.counter|add:9 }}">{{ forloop.counter|add:9 }}</label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-success w-100">💸 복권 구매 확정</button>
+                            </form>
+                        {% else %}
+                            <p class="text-center text-muted py-4">복권을 구매하려면 상단의 로그인 버튼을 눌러 로그인해 주세요.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="card-title mb-0">
+				{% if user.is_staff %}
+				전체 복권 판매 내역 & 당첨 내역 확인
+				{% else %}
+				나의 복권 구매 내역& 당첨 확인
+				{% endif %}
+			</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                        {% if user.is_authenticated %}
+                            {% if processed_tickets %}
+                                <div class="list-group">
+                                    {% for item in processed_tickets %}
+                                        <div class="list-group-item list-group-item-action flex-column align-items-start mb-2 border rounded shadow-sm">
+                                            <div class="d-flex w-100 justify-content-between mb-2">
+                                                <h6 class="mb-1 text-primary fw-bold">제 {{ item.instance.draw_round }}회 티켓</h6>
+                                                <small class="text-muted">{{ item.instance.purchase_date|date:"m-d H:i" }}</small>
+                                            </div>
+                                            <div class="mb-2">
+                                                {% for n in item.numbers %}
+                                                    <span class="badge bg-secondary font-monospace fs-6">{{ n }}</span>
+                                                {% endfor %}
+                                                <span class="badge bg-light text-dark border ms-1">{% if item.instance.is_auto %}자동{% else %}수동{% endif %}</span>
+                                            </div>
+                                            <div>
+                                                <span class="badge {% if '낙첨' in item.rank %}bg-secondary{% elif '대기' in item.rank %}bg-warning text-dark{% else %}bg-danger fs-6{% endif %}">
+                                                    {{ item.rank }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-center text-muted py-5">이번 회차에 구매한 내역이 아직 없습니다.</p>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-center text-muted py-5">로그인 하시면 구매한 복권 내역과 실시간 당첨 등수를 확인할 수 있습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-5">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0"> 지난 회차 당첨 결과 내역</h5>
+            </div>
+            <div class="card-body">
+                {% if past_rounds %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>회차</th>
+                                    <th>당첨 번호 6개</th>
+                                    <th>보너스 번호</th>
+                                    <th>추첨일</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in past_rounds %}
+                                    <tr>
+                                        <td class="fw-bold">제 {{ r.round_number }}회</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-primary fs-6 me-1">{{ r.num1 }}</span>
+                                                <span class="badge bg-primary fs-6 me-1">{{ r.num2 }}</span>
+                                                <span class="badge bg-primary fs-6 me-1">{{ r.num3 }}</span>
+                                                <span class="badge bg-primary fs-6 me-1">{{ r.num4 }}</span>
+                                                <span class="badge bg-primary fs-6 me-1">{{ r.num5 }}</span>
+                                                <span class="badge bg-primary fs-6 me-1">{{ r.num6 }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger fs-6">+ {{ r.bonus_num }}</span>
+                                        </td>
+                                        <td class="text-muted small">{{ r.draw_date|date:"Y-m-d H:i" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-center text-muted py-4">추첨이 완료된 지난 회차 내역이 아직 데이터베이스에 없습니다.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleManual(show) {
+            const panel = document.getElementById('manual_panel');
+            if (show) {
+                panel.classList.remove('d-none');
+            } else {
+                panel.classList.add('d-none');
+                // 체크박스 초기화
+                const checkboxes = panel.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => cb.checked = false);
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
