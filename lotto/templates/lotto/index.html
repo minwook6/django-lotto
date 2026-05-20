@@ -18,11 +18,11 @@
             margin-right: 5px;
             box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
         }
-        .bg-ball-1 { background-color: #fbc02d; } /* 1-10 노랑 */
-        .bg-ball-2 { background-color: #1e88e5; } /* 11-20 파랑 */
-        .bg-ball-3 { background-color: #e53935; } /* 21-30 빨강 */
-        .bg-ball-4 { background-color: #757575; } /* 31-40 회색 */
-        .bg-ball-5 { background-color: #43a047; } /* 41-45 녹색 */
+        .bg-ball-1 { background-color: #fbc02d; } 
+        .bg-ball-2 { background-color: #1e88e5; } 
+        .bg-ball-3 { background-color: #e53935; } 
+        .bg-ball-4 { background-color: #757575; } 
+        .bg-ball-5 { background-color: #43a047; } 
     </style>
 </head>
 <body class="bg-light">
@@ -33,15 +33,16 @@
             <span class="navbar-text text-white">
                 {% if user.is_authenticated %}
                     <strong>{{ user.username }}</strong>님 환영합니다! 
-                    {% if user.is_staff %}<span class="badge bg-danger">관리자</span>{% endif %}
-                    <form action="{% url 'admin:logout' %}?next=/" method="post" style="display: inline;">{% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-light ms-2">로그아웃</button>
+                    {% if user.is_staff %}<span class="badge bg-danger">관리자</span>
+		    {% endif %}
+
+                    <form action="{% url 'admin:logout' %}?next=/" method="post" style="display: inline;">
+			    {% csrf_token %}
+                 	    <button type="submit" class="btn btn-sm btn-outline-light ms-2">로그아웃</button>
                     </form>
                 {% else %}
-                    <form action="{% url 'admin:logout' %}?next=/" method="post" style="display: inline;">{% csrf_token %}
-                        <button type="submit" class="btn btn-outline-light btn-sm">로그아웃</button>
-                    </form>
-                {% endif %}
+		    <a href="{% url 'login' %}" class="btn btn-sm btn-outline-light">로그인</a>
+	        {% endif %}
             </span>
         </div>
     </nav>

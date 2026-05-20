@@ -1,25 +1,17 @@
-"""
-URL configuration for mylottosite project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
-from lotto import views as lotto_views
+from lotto import views as lotto_views  # lotto 앱의 회원가입 뷰를 가져옴.
 
 urlpatterns = [
+    # 1. 관리자 전용 숨겨진 주소
     path('secret-admin-access/', admin.site.urls),
-    path('', include('lotto.urls')),
+    
+    # 2. 일반 사용자 회원가입
+    path('accounts/signup/', lotto_views.signup, name='signup'),
+    
+    # 3. 장고 기본 로그인/로그아웃 제공 주소록
     path('accounts/', include('django.contrib.auth.urls')),
+    
+    # 4. 로또 앱 메인 페이지 주소록
+    path('', include('lotto.urls')),
 ]

@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# 1. 추첨 회차 모델 (관리자가 생성)
+# 추첨 회차 모델 (관리자가 생성)
 class Draw(models.Model):
     round_number = models.IntegerField(unique=True, verbose_name="회차")
     # 당첨 번호 6개 + 보너스 번호
@@ -19,7 +19,7 @@ class Draw(models.Model):
         return f"{self.round_number}회차 당첨번호"
 
 
-# 2. 복권 구매 내역 모델 (일반 사용자가 생성)
+# 복권 구매 내역 모델 (일반 사용자가 생성)
 class Ticket(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name="구매자")
     draw_round = models.IntegerField(verbose_name="응모 회차") 

@@ -1,11 +1,12 @@
 import random
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Draw, Ticket
 
 def index(request):
-    
     # 가장 최근에 추첨된 회차 가져옴
     last_draw = Draw.objects.order_by('-round_number').first()
     
@@ -18,10 +19,10 @@ def index(request):
     # 접속한 사람의 신분에 따라 보여줄 복권을 다르게 가져옴
     if request.user.is_authenticated:
         if request.user.is_staff:
-            # 관리자(staff): 이 사이트에서 팔린 '모든' 복권을 최신순으로 가져옴
+            # 관리자: 이 사이트에서 팔린 '모든' 복권을 최신순으로 가져옴
             all_tickets = Ticket.objects.order_by('-purchase_date')
         else:
-            # 일반 유저: (request.user)가 구매한 복권만 필터링해서 가져옴
+            # 일반 사용자: (request.user)가 구매한 복권만 필터링해서 가져옴
             all_tickets = Ticket.objects.filter(user=request.user).order_by('-purchase_date')
     else:
         # 비회원(로그아웃 상태): 아무 복권도 보여주지 않음
@@ -71,7 +72,6 @@ def index(request):
 # 로그인을 한 사람만 티켓을 살 수 있도록 막음
 @login_required 
 def buy_ticket(request):
-    
     if request.method == 'POST':
         last_draw = Draw.objects.order_by('-round_number').first()
         current_round_number = (last_draw.round_number + 1) if last_draw else 1
@@ -105,10 +105,9 @@ def buy_ticket(request):
     return redirect('lotto:index')
 
 
-# 관리자인사람만 추첨 버튼을 누를 수 있도록 막음
+# 관리자인 사람만 추첨 버튼을 누를 수 있도록 막음
 @user_passes_test(lambda u: u.is_staff) 
 def admin_draw(request):
-    
     if request.method == 'POST':
         last_draw = Draw.objects.order_by('-round_number').first()
         current_round_number = (last_draw.round_number + 1) if last_draw else 1
@@ -130,3 +129,18 @@ def admin_draw(request):
         messages.success(request, f"제 {current_round_number}회 추첨이 완료되었습니다! 당첨번호: {winning_nums} + 보너스: {bonus}")
 
     return redirect('lotto:index')
+
+
+# 일반 사용자 회원가입 기능
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()          # 데이터베이스에 일반 사용자 계정으로 안전하게 저장
+            auth_login(request, user)   # 가입이 성공하면 그 자리에서 즉시 자동 로그인 처리
+            messages.success(request, f"{user.username}님, 회원가입을 축하합니다!")
+            return redirect('/')        # 가입 완료 후 메인 로또 페이지로 이동
+    else:
+        form = UserCreationForm()
+        
+    return render(request, 'registration/signup.html', {'form': form})

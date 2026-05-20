@@ -9,3 +9,10 @@
   {{ form.as_p }}
   <button type="submit">로그인</button>
 </form>
+
+<div class="text-center mt-3">
+    <p class="small text-muted">
+        아직 로또 시스템 회원이 아니신가요?
+        <a href="{% url 'signup' %}" class="text-success fw-bold text-decoration-none ms-1">회원가입 하러가기</a>
+    </p>
+</div>
