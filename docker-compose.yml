@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  web:
+    build: .
+    container_name: lotto_django
+    expose:
+      - "8000"
+    networks:
+      - lotto-network
+
+  nginx:
+    image: nginx:latest
+    container_name: lotto_nginx
+    ports:
+      - "80:80"
+    volumes:
+      # 호스트의 ./nginx 폴더를 컨테이너 내부 설정 폴더와 직접 연동
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - web
+    networks:
+      - lotto-network
+
+networks:
+  lotto-network:
+    driver: bridge

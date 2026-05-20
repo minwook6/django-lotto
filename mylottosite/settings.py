@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-l7_f(=+y8i2pc8r$$hpk3x_efkzytu_tro^+rtn3x4lixs4$-0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -117,5 +117,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-LOGIN_REDIRECT_URL = '/'  # 로그인 성공하면 메인('/')으로 가라!
-LOGOUT_REDIRECT_URL = '/' # 로그아웃 성공해도 메인('/')으로 가라!
+LOGIN_REDIRECT_URL = '/'  # 로그인 성공 시 가야할 곳
+LOGOUT_REDIRECT_URL = '/' # 로그아웃 성공 시 가야할 곳
+
+LOGIN_URL = '/accounts/login/'

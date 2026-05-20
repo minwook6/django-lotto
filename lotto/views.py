@@ -1,37 +1,33 @@
 import random
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-# [보안 추가] 로그인 여부와 관리자 여부를 체크하는 장비 임포트
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Draw, Ticket
 
 def index(request):
-    """
-    메인 페이지: 현재 진행 중인 회차 번호를 계산하고, 
-    과거 추첨 내역 및 구매된 티켓들의 등수를 실시간으로 비교하여 보여줌
-    """
-    # 1. 가장 최근에 추첨된 회차 가져오기
+    
+    # 가장 최근에 추첨된 회차 가져옴
     last_draw = Draw.objects.order_by('-round_number').first()
     
-    # 2. 현재 구매 중인 회차는 (마지막 추첨 회차 + 1) 회차임 (아무것도 없으면 1회차)
+    # 현재 구매 중인 회차는 (마지막 추첨 회차 + 1) 회차임 (아무것도 없으면 1회차)
     current_round_number = (last_draw.round_number + 1) if last_draw else 1
 
-    # 3. 지난 추첨 결과 전체 목록
+    # 지난 추첨 결과 전체 목록
     past_rounds = Draw.objects.order_by('-round_number')
 
-    # 4. [핵심 로직] 접속한 사람의 신분에 따라 보여줄 복권을 다르게 가져옴!
+    # 접속한 사람의 신분에 따라 보여줄 복권을 다르게 가져옴
     if request.user.is_authenticated:
         if request.user.is_staff:
             # 관리자(staff): 이 사이트에서 팔린 '모든' 복권을 최신순으로 가져옴
             all_tickets = Ticket.objects.order_by('-purchase_date')
         else:
-            # 일반 유저: '나(request.user)'가 구매한 복권만 필터링해서 가져옴
+            # 일반 유저: (request.user)가 구매한 복권만 필터링해서 가져옴
             all_tickets = Ticket.objects.filter(user=request.user).order_by('-purchase_date')
     else:
         # 비회원(로그아웃 상태): 아무 복권도 보여주지 않음
         all_tickets = []
 
-    # 5. 티켓마다 당첨 번호와 대조하여 실시간으로 등수 매기기
+    # 티켓마다 당첨 번호와 대조하여 실시간으로 등수 매기기
     processed_tickets = []
     for ticket in all_tickets:
         draw = Draw.objects.filter(round_number=ticket.draw_round).first()
@@ -45,11 +41,11 @@ def index(request):
             match_count = len(win_set.intersection(ticket_set))
 
             if match_count == 6:
-                rank_result = "1등 🎉"
+                rank_result = "1등 !!!"
             elif match_count == 5 and draw.bonus_num in ticket_set:
-                rank_result = "2등 🥈"
+                rank_result = "2등 !!"
             elif match_count == 5:
-                rank_result = "3등 🥉"
+                rank_result = "3등 !"
             elif match_count == 4:
                 rank_result = "4등"
             elif match_count == 3:
@@ -72,12 +68,10 @@ def index(request):
     return render(request, 'lotto/index.html', context)
 
 
-# [보안] 로그인을 한 사람만 티켓을 살 수 있도록 막음
+# 로그인을 한 사람만 티켓을 살 수 있도록 막음
 @login_required 
 def buy_ticket(request):
-    """
-    복권 구매 처리: 현재 진행 중인 회차로 티켓을 생성함
-    """
+    
     if request.method == 'POST':
         last_draw = Draw.objects.order_by('-round_number').first()
         current_round_number = (last_draw.round_number + 1) if last_draw else 1
@@ -93,9 +87,9 @@ def buy_ticket(request):
                 return redirect('lotto:index')
             nums = sorted(list(map(int, selected_numbers)))
 
-        # [핵심 로직] Ticket을 생성할 때 누가(user) 샀는지 도장을 쾅 찍어줌!
+        # Ticket을 생성할 때 누가 샀는지 알기위함
         Ticket.objects.create(
-            user=request.user, # 👈 현재 로그인한 유저 정보를 저장
+            user=request.user, # 현재 로그인한 유저 정보를 저장
             draw_round=current_round_number,
             num1=nums[0],
             num2=nums[1],
@@ -111,12 +105,10 @@ def buy_ticket(request):
     return redirect('lotto:index')
 
 
-# [보안] 관리자(staff) 뱃지를 가진 사람만 추첨 버튼을 누를 수 있도록 막음
+# 관리자인사람만 추첨 버튼을 누를 수 있도록 막음
 @user_passes_test(lambda u: u.is_staff) 
 def admin_draw(request):
-    """
-    관리자 추첨 기능: 새로운 회차의 당첨 번호를 생성하여 Draw 레코드를 남김
-    """
+    
     if request.method == 'POST':
         last_draw = Draw.objects.order_by('-round_number').first()
         current_round_number = (last_draw.round_number + 1) if last_draw else 1

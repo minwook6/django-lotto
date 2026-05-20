@@ -19,7 +19,7 @@ from django.urls import path, include
 from lotto import views as lotto_views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('secret-admin-access/', admin.site.urls),
     path('', include('lotto.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
 ]

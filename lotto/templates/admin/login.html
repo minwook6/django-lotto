@@ -1,0 +1,8 @@
+{% extends "admin/login.html" %}
+
+{% block content %}
+<script>
+    // 관리자 페이지에 접속하면 무조건 로그인 창으로 튕겨내게 함
+    window.location.href = "{% url 'login' %}?next={{ request.get_full_path }}";
+</script>
+{% endblock %}
