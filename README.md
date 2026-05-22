@@ -40,20 +40,3 @@ Django 프레임워크와 Docker 멀티 컨테이너 아키텍처를 기반으�
 2. **Django + Gunicorn (WAS):** * 파이썬 웹 애플리케이션 코드를 실행하며, 내부망의 포트 8000번에서 대기합니다.
 3. **네트워크 격리 (Isolated Network):** * Nginx와 Django 컨테이너는 사용자 정의 브릿지 네트워크(`lotto-network`)로만 통신하며, 외부에서 WAS로 직접 타격하는 것을 물리적으로 차단합니다.
 4. **데이터 영속성 (Volume Bind Mount):** * 컨테이너가 재시작되거나 파괴되어도 데이터가 유실되지 않도록, 호스트 디렉토리의 `db.sqlite3`를 컨테이너와 마운트하여 데이터 영속성을 보장합니다.
-
-<br>
-
-## 🚀 How to Run (실행 방법)
-
-Docker와 Docker Compose가 설치된 환경에서 아래 명령어를 통해 즉시 가동할 수 있습니다.
-
-```bash
-# 1. 저장소 클론
-$git clone [https://github.com/minwook6/django-lotto.git$](https://github.com/minwook6/django-lotto.git$) cd django-lotto
-
-# 2. 도커 컴포즈 빌드 및 백그라운드 실행
-$ docker-compose up --build -d
-
-# 3. 서비스 접속
-# 웹 브라우저에서 아래 주소로 접속합니다.
-http://localhost/
