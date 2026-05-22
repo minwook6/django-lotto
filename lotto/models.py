@@ -21,6 +21,8 @@ class Draw(models.Model):
 
 # 복권 구매 내역 모델 (일반 사용자가 생성)
 class Ticket(models.Model):
+
+    # 누가 구매하였는지를 기록하기 위함
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name="구매자")
     draw_round = models.IntegerField(verbose_name="응모 회차") 
     
